@@ -1,0 +1,18 @@
+
+build-base:
+    # Build and tag the base/executor image
+    docker build -f Dockerfile.base -t peterhenell/spark-kubernetes-playground:base .
+
+push-base: build-base
+    # Push the contaimer image to a public registry
+    # docker push code.oak-tree.tech:5005/courseware/oak-tree/dataops-examples/spark-k8s-base
+    docker push peterhenell/spark-kubernetes-playground:base
+
+build-driver: build-base
+# Build and tag the driver image
+    docker build -f Dockerfile.driver -t peterhenell/spark-kubernetes-playground:driver .
+
+push-driver: build-driver
+    # Push the contaimer image to a public registry
+    # docker push code.oak-tree.tech:5005/courseware/oak-tree/dataops-examples/spark-k8s-driver
+    docker push peterhenell/spark-kubernetes-playground:driver
