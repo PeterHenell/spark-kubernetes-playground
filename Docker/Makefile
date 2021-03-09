@@ -16,16 +16,16 @@ help: ## This help.
 .DEFAULT_GOAL := help
 
 build-base: ## Build base image, used for workers and base for the driver.
-	docker build -f Dockerfile.base -t peterhenell/spark-kubernetes-playground:base .
+	docker build -f Dockerfile.base -t $(BASE-IMAGE) .
 
 push-base: build-base ## Push the contaimer image to a public registry
-	docker push peterhenell/spark-kubernetes-playground:base
+	docker push $(BASE-IMAGE)
 
 build-driver: build-base ## Build and tag the driver image
-	docker build -f Dockerfile.driver -t peterhenell/spark-kubernetes-playground:driver .
+	docker build -f Dockerfile.driver -t $(DRIVER-IMAGE) .
 
 push-driver: build-driver ## Push the contaimer image to a public registry
-	docker push peterhenell/spark-kubernetes-playground:driver
+	docker push $(DRIVER-IMAGE)
 
 push: push-base push-driver ## Push both base and driver
 
@@ -47,11 +47,11 @@ az-delete: az-login ## Deletes cluster in Azure
 
 
 configure-kubernetes: ## When kubectl context have been set to correct cluster, this will configure that cluster	
-	# Create spark-driver service account
-	kubectl create serviceaccount spark-driver
+	# Create $(SA-SPARK-DRIVER) service account
+	kubectl create serviceaccount $(SA-SPARK-DRIVER)
 
 	# Create a cluster and namespace "role-binding" to grant the account administrative privileges
-	kubectl create rolebinding spark-driver-rb --clusterrole=cluster-admin --serviceaccount=default:spark-driver
+	kubectl create rolebinding $(SA-SPARK-DRIVER)-rb --clusterrole=cluster-admin --serviceaccount=default:$(SA-SPARK-DRIVER)
 
 	# Create Spark executor account
 	kubectl create serviceaccount spark-minion
@@ -59,9 +59,12 @@ configure-kubernetes: ## When kubectl context have been set to correct cluster, 
 	# Create rolebinding to offer "edit" privileges
 	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=default:spark-minion
 
+expose: ## Expose the jump pod using a headless service
+	kubectl expose pod $(SPARK_DRIVER_NAME) --port=$(SPARK_DRIVER_PORT) --type=ClusterIP --cluster-ip=None
+
 jump: ## Create a jump pod using the Spark driver container and service account
-	kubectl run spark-test-pod --generator=run-pod/v1 -it --rm=true \
-	--image=peterhenell/spark-kubernetes-playground:driver \
-	--serviceaccount=spark-driver \
+	kubectl run $(SPARK_DRIVER_NAME) --generator=run-pod/v1 -it --rm=true \
+	--image=$(DRIVER-IMAGE) \
+	--serviceaccount=$(SA-SPARK-DRIVER) \
 	--image-pull-policy Always \
 	--command -- /bin/bash
