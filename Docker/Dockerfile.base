@@ -16,6 +16,7 @@ FROM openjdk:8-jdk-slim AS build
 # Spark UID
 ARG spark_uid=185
 
+
 # Install Spark Dependencies and Prepare Spark Runtime Environment
 RUN set -ex && \
     apt-get update && \
