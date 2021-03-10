@@ -27,7 +27,13 @@ build-driver: build-base ## Build and tag the driver image
 push-driver: build-driver ## Push the contaimer image to a public registry
 	docker push $(DRIVER-IMAGE)
 
-push: push-base push-driver ## Push both base and driver
+build-jupyter: build-driver ## Build and tag image for Jupyter
+	docker build -f Dockerfile.jupyter -t $(JUPYTER-IMAGE) .
+
+push-jupyter: build-jupyter ## Push jupyter image
+	docker push $(JUPYTER-IMAGE)
+
+push: push-base push-driver push-jupyter ## Push Base, driver and Jupyter
 
 minikube-start: ## Create kubernetes kluster in minikube
 	minikube start --driver=docker
@@ -62,9 +68,21 @@ configure-kubernetes: ## When kubectl context have been set to correct cluster, 
 expose: ## Expose the jump pod using a headless service
 	kubectl expose pod $(SPARK_DRIVER_NAME) --port=$(SPARK_DRIVER_PORT) --type=ClusterIP --cluster-ip=None
 
+expose-rem: ## Remove exposure to jump pod
+	kubectl delete svc $(SPARK_DRIVER_NAME)
+
+port-forward: ## Forward a port in the local environment to the pod to test the runtime
+	kubectl port-forward pod/jupyter-test-pod 8888:8888
+
 jump: ## Create a jump pod using the Spark driver container and service account
 	kubectl run $(SPARK_DRIVER_NAME) --generator=run-pod/v1 -it --rm=true \
 	--image=$(DRIVER-IMAGE) \
 	--serviceaccount=$(SA-SPARK-DRIVER) \
 	--image-pull-policy Always \
 	--command -- /bin/bash
+
+jupyter: ## Start an instance of Jupyter container in Kubernetes
+	kubectl run jupyter-test-pod --generator=run-pod/v1 -it --rm=true \
+	--image=$(JUPYTER-IMAGE) \
+	--serviceaccount=spark-driver \
+	--command -- jupyter lab --ip 0.0.0.0

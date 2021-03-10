@@ -8,8 +8,9 @@ RUN apt install -y apt-transport-https apt-utils gnupg curl \
   && apt update \
   && apt install -y kubectl
 
-ADD run-example.sh /opt/spark/work-dir/run-example.sh
-ADD run-client-mode.sh /opt/spark/work-dir/run-client-mode.sh
+COPY --chmod=+x run-example.sh /opt/spark/work-dir/run-example.sh
+COPY --chmod=+x run-client-mode.sh /opt/spark/work-dir/run-client-mode.sh
+COPY --chmod=+x start-pyspark.sh /opt/spark/work-dir/start-pyspark.sh
 
 # Switch back to Spark USER uid
 USER ${spark_uid}
