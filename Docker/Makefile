@@ -72,6 +72,9 @@ expose-rem: ## Remove exposure to jump pod
 	kubectl delete svc $(SPARK_DRIVER_NAME)
 
 port-forward: ## Forward a port in the local environment to the pod to test the runtime
+	# this one creates a service which needs to be deleted if running the command again.
+	# keeping this here mostly for remembering..
+	kubectl expose pod jupyter-test-pod --type=ClusterIP --cluster-ip=None
 	kubectl port-forward pod/jupyter-test-pod 8888:8888
 
 jump: ## Create a jump pod using the Spark driver container and service account
