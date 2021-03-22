@@ -45,12 +45,17 @@ az-login: ## login to azure before running any azure commands.
 	$(az) login
 
 az-start: az-login ## Create kubernetes cluster in Azure
-	$(az) aks create --resource-group etltodf --name monsunkubernetes --node-count 3  --generate-ssh-keys
+	$(az) aks create --resource-group etltodf --name monsunkubernetes --node-count 5  --generate-ssh-keys
+
+az-getcredentials:
 	$(az) aks get-credentials --resource-group etltodf --name monsunkubernetes
 
 az-delete: az-login ## Deletes cluster in Azure
 	$(az) aks delete --resource-group etltodf --name monsunkubernetes
 
+kube-create-namespace:
+	kubectl create namespace monsun
+	kubectl config set-context --current --namespace=monsun
 
 configure-kubernetes: ## When kubectl context have been set to correct cluster, this will configure that cluster	
 	# Create $(SA-SPARK-DRIVER) service account
@@ -63,7 +68,9 @@ configure-kubernetes: ## When kubectl context have been set to correct cluster, 
 	kubectl create serviceaccount spark-minion
 
 	# Create rolebinding to offer "edit" privileges
-	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=default:spark-minion
+	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=monsun:spark-minion
+
+az-prepare: az-start az-getcredentials kube-create-namespace configure-kubernetes ## Creates cluster and configures namespace, service account etc
 
 expose: ## Expose the jump pod using a headless service
 	kubectl expose pod $(SPARK_DRIVER_NAME) --port=$(SPARK_DRIVER_PORT) --type=ClusterIP --cluster-ip=None
@@ -74,8 +81,11 @@ expose-rem: ## Remove exposure to jump pod
 port-forward: ## Forward a port in the local environment to the pod to test the runtime
 	# this one creates a service which needs to be deleted if running the command again.
 	# keeping this here mostly for remembering..
-	kubectl expose pod jupyter-test-pod --type=ClusterIP --cluster-ip=None
+	#kubectl expose pod jupyter-test-pod --type=ClusterIP --cluster-ip=None
 	kubectl port-forward pod/jupyter-test-pod 8888:8888
+
+deploy:
+	kubectl apply -f ../deployment.yaml
 
 jump: ## Create a jump pod using the Spark driver container and service account
 	kubectl run $(SPARK_DRIVER_NAME) --generator=run-pod/v1 -it --rm=true \
@@ -87,5 +97,5 @@ jump: ## Create a jump pod using the Spark driver container and service account
 jupyter: ## Start an instance of Jupyter container in Kubernetes
 	kubectl run jupyter-test-pod --generator=run-pod/v1 -it --rm=true \
 	--image=$(JUPYTER-IMAGE) \
-	--serviceaccount=spark-driver \
+	--serviceaccount=$(SA-SPARK-DRIVER) \
 	--command -- jupyter lab --ip 0.0.0.0

@@ -1,5 +1,5 @@
 # Define environment variables with accounts and auth parameters
-export SPARK_NAMESPACE=default
+export SPARK_NAMESPACE=monsun
 export SA=spark-minion
 export K8S_CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 export K8S_TOKEN=/var/run/secrets/kubernetes.io/serviceaccount/token
