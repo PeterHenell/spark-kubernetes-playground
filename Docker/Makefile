@@ -44,7 +44,7 @@ minikube-delete: ## Deletes kubernetes kluster in minikube
 az-login: ## login to azure before running any azure commands.
 	$(az) login
 
-az-start: az-login ## Create kubernetes cluster in Azure
+az-start-cluster: az-login ## Create kubernetes cluster in Azure
 	$(az) aks create --resource-group etltodf --name monsunkubernetes --node-count 5  --generate-ssh-keys
 
 az-getcredentials:
@@ -70,7 +70,7 @@ configure-kubernetes: ## When kubectl context have been set to correct cluster, 
 	# Create rolebinding to offer "edit" privileges
 	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=monsun:spark-minion
 
-az-prepare: az-start az-getcredentials kube-create-namespace configure-kubernetes ## Creates cluster and configures namespace, service account etc
+az-prepare: az-start-cluster az-getcredentials kube-create-namespace configure-kubernetes ## Creates cluster and configures namespace, service account etc
 
 expose: ## Expose the jump pod using a headless service
 	kubectl expose pod $(SPARK_DRIVER_NAME) --port=$(SPARK_DRIVER_PORT) --type=ClusterIP --cluster-ip=None

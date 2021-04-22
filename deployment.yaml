@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jupyter-test-pod
+  namespace: monsun
+  labels:
+    app: jupyter-test-pod
+    environment: test
+
+spec:
+  serviceAccountName: spark-driver
+  
+  securityContext:
+    fsGroup: 777
+
+  containers:
+  - name: jupyter-test-pod
+    image: peterhenell/spark-kubernetes-playground:jupyter
+    imagePullPolicy: Always
+    command: ["jupyter", "lab", "--ip", "0.0.0.0"]
+    volumeMounts:
+    - name: storage-config-volume
+      mountPath: /home/jovyan/.jupyter/jupyter_notebook_config.py
+      subPath: app_configuration.py
+  
+  volumes:
+  - name: storage-config-volume
+    configMap:
+      name: jupyter-notebook-config
+  
+  restartPolicy: Always
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyter-notebook-config
+  namespace: monsun
+data:
+  app_configuration.py: |
+    from s3contents import S3ContentsManager
+    from IPython.lib import passwd
+    c = get_config()
+    # Startup auth Token
+    c.NotebookApp.password = passwd("secret-password@jupyter.oak-tree.office")
+    # S3 Object Storage Configuration
+    from s3contents import S3ContentsManager
+    c.NotebookApp.contents_manager_class = S3ContentsManager
+    c.S3ContentsManager.access_key_id = "admin"
+    c.S3ContentsManager.secret_access_key = "secret-key@object-storage.oak-tree.office"
+    c.S3ContentsManager.endpoint_url = "https://object-storage:9000"
+    c.S3ContentsManager.bucket = "raw"
+    c.S3ContentsManager.prefix = "notebooks"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter-test-pod
+  namespace: monsun
+spec:
+  clusterIP: None
+  selector:
+    app: jupyter-test-pod
+    environment: test
+  ports:
+  - protocol: TCP
+    port: 8888
+    targetPort: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: object-storage
+  namespace: monsun
+spec:
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    # Looks for labels `app:minio` in the namespace and applies the spec
+    app: monsun-tenant-hl
