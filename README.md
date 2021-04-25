@@ -41,3 +41,6 @@ För att komma åt minio operator admin
 
 För att komma åt MinIO Browser.
 	kubectl port-forward svc/minio 9000:443
+
+	# om deployat med minio-deployment
+	kubectl port-forward svc/object-storage 9000:443

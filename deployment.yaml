@@ -41,12 +41,12 @@ data:
     from IPython.lib import passwd
     c = get_config()
     # Startup auth Token
-    c.NotebookApp.password = passwd("secret-password@jupyter.oak-tree.office")
+    c.NotebookApp.password = passwd("hemligt@peter)
     # S3 Object Storage Configuration
     from s3contents import S3ContentsManager
     c.NotebookApp.contents_manager_class = S3ContentsManager
-    c.S3ContentsManager.access_key_id = "admin"
-    c.S3ContentsManager.secret_access_key = "secret-key@object-storage.oak-tree.office"
+    c.S3ContentsManager.access_key_id = "WU9VUkNPTlNPTEVBQ0NFU1M"
+    c.S3ContentsManager.secret_access_key = "WU9VUkNPTlNPTEVTRUNSRVQ="
     c.S3ContentsManager.endpoint_url = "https://object-storage:9000"
     c.S3ContentsManager.bucket = "raw"
     c.S3ContentsManager.prefix = "notebooks"
@@ -65,17 +65,3 @@ spec:
   - protocol: TCP
     port: 8888
     targetPort: 8888
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: object-storage
-  namespace: monsun
-spec:
-  ports:
-    - port: 9000
-      targetPort: 9000
-      protocol: TCP
-  selector:
-    # Looks for labels `app:minio` in the namespace and applies the spec
-    app: monsun-tenant-hl
