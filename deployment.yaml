@@ -9,7 +9,6 @@ metadata:
 
 spec:
   serviceAccountName: spark-driver
-  
   securityContext:
     fsGroup: 777
 
@@ -27,7 +26,6 @@ spec:
   - name: storage-config-volume
     configMap:
       name: jupyter-notebook-config
-  
   restartPolicy: Always
 ---
 apiVersion: v1
@@ -45,10 +43,10 @@ data:
     # S3 Object Storage Configuration
     from s3contents import S3ContentsManager
     c.NotebookApp.contents_manager_class = S3ContentsManager
-    c.S3ContentsManager.access_key_id = "WU9VUkNPTlNPTEVBQ0NFU1M"
-    c.S3ContentsManager.secret_access_key = "WU9VUkNPTlNPTEVTRUNSRVQ="
-    c.S3ContentsManager.endpoint_url = "https://object-storage:9000"
-    c.S3ContentsManager.bucket = "raw"
+    c.S3ContentsManager.access_key_id = "MzU2ZWI0MDUtNGEwMy00ZjQyLWE5NjQtNDczNDNjYzUwMDc2"
+    c.S3ContentsManager.secret_access_key = "ZWZkNWM3NjUtMDI5MC00MzI1LTllMTQtNmRiNDkzYmU1MGI2"
+    c.S3ContentsManager.endpoint_url = "https://monsuntenant:9000"
+    c.S3ContentsManager.bucket = "playground"
     c.S3ContentsManager.prefix = "notebooks"
 ---
 apiVersion: v1

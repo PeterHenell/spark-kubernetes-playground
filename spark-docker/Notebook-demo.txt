@@ -1,3 +1,29 @@
+import os
+
+PACKAGE_OPTIONS = '--packages %s ' % ','.join((        
+        # 'org.apache.spark:spark-avro_2.12:2.4.4',
+    ))
+
+JAR_OPTIONS = '--jars %s ' % ','.join((
+        '/opt/spark/jars/joda-time-2.9.9.jar',
+        '/opt/spark/jars/httpclient-4.5.3.jar',
+        '/opt/spark/jars/aws-java-sdk-s3-1.11.534.jar',
+        '/opt/spark/jars/aws-java-sdk-kms-1.11.534.jar',
+        '/opt/spark/jars/aws-java-sdk-dynamodb-1.11.534.jar',
+        '/opt/spark/jars/aws-java-sdk-core-1.11.534.jar',
+        '/opt/spark/jars/aws-java-sdk-1.11.534.jar',
+        '/opt/spark/jars/hadoop-aws-3.1.2.jar',
+        '/opt/spark/jars/slf4j-api-1.7.29.jar',
+        '/opt/spark/jars/slf4j-log4j12-1.7.29.jar',
+    ))
+
+os.environ['PYSPARK_SUBMIT_ARGS'] = JAR_OPTIONS + ' pyspark-shell'
+os.environ.get('PYSPARK_SUBMIT_ARGS')
+
+
+
+
+
 import pyspark
 
 conf = pyspark.SparkConf()
@@ -54,3 +80,28 @@ sc = pyspark.SparkContext(conf=conf)
 # Initialize Spark Session
 from pyspark.sql import SparkSession
 spark = SparkSession(sc)
+
+
+
+
+
+
+
+
+# Create a distributed data set to test to the session
+t = sc.parallelize(range(10))
+
+# Calculate the approximate sum of values in the dataset
+r = t.sumApprox(3)
+print('Approximate sum: %s' % r)
+
+
+# Write a two column table to MinIO as CSV
+OBJECTURL_TEST = 's3a://monsun-tenant/playground/colors-test.csv'
+rdd = sc.parallelize([('Mario', 'Red'), ('Luigi', 'Green'), ('Princess', 'Pink')])
+rdd.toDF(['name', 'color']).write.csv(OBJECTURL_TEST, header=True)
+
+# Read the data back from MinIO
+gnames_df = spark.read.format('csv').option('header', True) \
+    .load(OBJECTURL_TEST)
+gnames_df.show()

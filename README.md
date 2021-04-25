@@ -41,6 +41,13 @@ För att komma åt minio operator admin
 
 För att komma åt MinIO Browser.
 	kubectl port-forward svc/minio 9000:443
+	# https://127.0.0.1:9000/minio/login
 
 	# om deployat med minio-deployment
 	kubectl port-forward svc/object-storage 9000:443
+
+
+TODO
+
+	1: Installera minio operator och tenant
+	2: verifiera att spark kan läsa från minio

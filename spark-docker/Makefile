@@ -33,9 +33,9 @@ build-jupyter: build-driver ## Build and tag image for Jupyter
 push-jupyter: build-jupyter ## Push jupyter image
 	docker push $(JUPYTER-IMAGE)
 
-build: build-executor build-driver build-jupyter
+build: build-executor build-driver build-jupyter ## builds all images
 
-push: push-executor push-driver push-jupyter
+push: push-executor push-driver push-jupyter ## pushes all images to docker.io
 
 az-login: ## login to azure before running any azure commands.
 	$(az) login
@@ -43,13 +43,10 @@ az-login: ## login to azure before running any azure commands.
 az-start-cluster: az-login ## Create kubernetes cluster in Azure
 	$(az) aks create --resource-group etltodf --name monsunkubernetes --node-count 5  --generate-ssh-keys
 
-az-getcredentials:
+az-getcredentials: ## Configure kubectl context to point to the kubernetes cluster, overwriting existing configuration for clusters by same name
 	$(az) aks get-credentials --resource-group etltodf --name monsunkubernetes --overwrite-existing
 
-az-delete: az-login ## Deletes cluster in Azure
-	$(az) aks delete --resource-group etltodf --name monsunkubernetes
-
-kube-create-namespace:
+kube-create-namespace: ## Creates the monsun namespace in the kubernetes cluster, sets the current context to the new namespace
 	kubectl create namespace monsun
 	kubectl config set-context --current --namespace=monsun
 
@@ -58,7 +55,7 @@ kube-config: ## When kubectl context have been set to correct cluster, this will
 	kubectl create serviceaccount $(SA-SPARK-DRIVER)
 
 	# Create a cluster and namespace "role-binding" to grant the account administrative privileges
-	kubectl create rolebinding $(SA-SPARK-DRIVER)-rb --clusterrole=cluster-admin --serviceaccount=monsun:$(SA-SPARK-DRIVER)
+	kubectl create rolebinding $(SA-SPARK-DRIVER)-monsun-rb --clusterrole=cluster-admin --serviceaccount=monsun:$(SA-SPARK-DRIVER)
 	kubectl create rolebinding $(SA-SPARK-DRIVER)-default-rb --clusterrole=cluster-admin --serviceaccount=default:$(SA-SPARK-DRIVER)
 
 	# Create Spark executor account
@@ -67,4 +64,12 @@ kube-config: ## When kubectl context have been set to correct cluster, this will
 	# Create rolebinding to offer "edit" privileges
 	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=monsun:spark-minion
 
-az-prepare: az-start-cluster az-getcredentials kube-create-namespace kube-config ## Creates cluster and configures namespace, service account etc
+minio-operator: ## Install the Minio operator to the cluster. Requires krew on local machine and to have executed: kubectl krew install minio
+	kubectl minio init
+
+minio-tenant: minio-operator ## Create the minio tenant. Will take a few minutes at least
+	kubectl minio tenant create monsun-tenant --servers 4 --volumes 16 --capacity 2Gi --namespace monsun --storage-class default
+
+minio: minio-operator minio-tenant ## installs operator and the tenant
+
+az-create: az-start-cluster az-getcredentials kube-create-namespace kube-config ## Creates cluster and configures namespace, service account etc
