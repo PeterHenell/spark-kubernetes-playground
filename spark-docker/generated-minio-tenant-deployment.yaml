@@ -24,7 +24,6 @@ spec:
     volumeClaimTemplate:
       apiVersion: v1
       kind: persistentvolumeclaims
-      metadata:
       spec:
         accessModes:
         - ReadWriteOnce
@@ -46,9 +45,12 @@ status:
 ---
 apiVersion: v1
 data:
-  accesskey: MzU2ZWI0MDUtNGEwMy00ZjQyLWE5NjQtNDczNDNjYzUwMDc2
-  secretkey: ZWZkNWM3NjUtMDI5MC00MzI1LTllMTQtNmRiNDkzYmU1MGI2
+  ## Access Key for MinIO Tenant, base64 encoded (echo -n 'minio' | base64)
+  accesskey: bWluaW8=
+  ## Secret Key for MinIO Tenant, base64 encoded (echo -n 'minio123' | base64)
+  secretkey: bWluaW8xMjM=
 kind: Secret
+type: Opaque
 metadata:
   name: monsuntenant-creds-secret
   namespace: monsun
@@ -56,11 +58,16 @@ metadata:
 ---
 apiVersion: v1
 data:
-  CONSOLE_ACCESS_KEY: YWRtaW4=
-  CONSOLE_PBKDF_PASSPHRASE: MjViMDNhODQtMWFlZS00ZjYwLTg2NjItMDljNDU3YThmYjA4
-  CONSOLE_PBKDF_SALT: OWExZGM1YjktN2JlNy00Yzc5LWEwODQtMmY2NWI2NzYyZmVk
-  CONSOLE_SECRET_KEY: ZDFhYjljMDEtMWY1Mi00OGQ2LWFjMDQtOTZkYjAwODc2OTBj
+  ## Passphrase to encrypt jwt payload, base64 encoded (echo -n 'SECRET' | base64)
+  CONSOLE_PBKDF_PASSPHRASE: U0VDUkVU
+  ## Salt to encrypt jwt payload, base64 encoded (echo -n 'SECRET' | base64)
+  CONSOLE_PBKDF_SALT: U0VDUkVU
+  ## MinIO User Access Key (used for Console Login), base64 encoded (echo -n 'YOURCONSOLEACCESS' | base64)
+  CONSOLE_ACCESS_KEY: WU9VUkNPTlNPTEVBQ0NFU1M=
+  ## MinIO User Secret Key (used for Console Login), base64 encoded (echo -n 'YOURCONSOLESECRET' | base64)
+  CONSOLE_SECRET_KEY: WU9VUkNPTlNPTEVTRUNSRVQ=
 kind: Secret
+type: Opaque
 metadata:
   name: monsuntenant-console-secret
   namespace: monsun

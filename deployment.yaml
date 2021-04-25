@@ -45,7 +45,7 @@ data:
     c.NotebookApp.contents_manager_class = S3ContentsManager
     c.S3ContentsManager.access_key_id = "MzU2ZWI0MDUtNGEwMy00ZjQyLWE5NjQtNDczNDNjYzUwMDc2"
     c.S3ContentsManager.secret_access_key = "ZWZkNWM3NjUtMDI5MC00MzI1LTllMTQtNmRiNDkzYmU1MGI2"
-    c.S3ContentsManager.endpoint_url = "https://monsuntenant:9000"
+    c.S3ContentsManager.endpoint_url = "https://minio:433"
     c.S3ContentsManager.bucket = "playground"
     c.S3ContentsManager.prefix = "notebooks"
 ---

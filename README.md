@@ -4,9 +4,6 @@ Playground for running spark on kubernetes
 Based on 
 https://oak-tree.tech/blog/spark-kubernetes-primer
 
-	az login
-	az aks create --resource-group kubepoc --name monsunkubernetes --node-count 3  --generate-ssh-keys
-	az aks get-credentials --resource-group kubepoc --name monsunkubernetes
 
 https://krew.sigs.k8s.io/docs/user-guide/setup/install/
 
@@ -21,6 +18,10 @@ https://github.com/minio/operator
 
 	kubectl minio init
 	kubectl minio tenant create monsun-tenant --servers 4 --volumes 16 --capacity 2Gi --namespace monsun --storage-class default
+
+För att följa installationen som minio operator utför
+	 
+	 kubectl get tenants.minio.min.io
 
 A new Tenant has been created with the following details:
 Console Credentials
@@ -37,14 +38,17 @@ Console Credentials
 
 
 För att komma åt minio operator admin
+	
 	kubectl minio proxy
 
 För att komma åt MinIO Browser.
+	
 	kubectl port-forward svc/minio 9000:443
 	# https://127.0.0.1:9000/minio/login
 
 	# om deployat med minio-deployment
 	kubectl port-forward svc/object-storage 9000:443
+
 
 
 TODO
