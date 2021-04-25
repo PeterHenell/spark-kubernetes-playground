@@ -1,0 +1,66 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata: 
+  name: monsuntenant
+  namespace: monsun
+scheduler:
+  name: ""
+spec:
+  certConfig: {}
+  console:
+    consoleSecret:
+      name: monsuntenant-console-secret
+    image: minio/console:v0.6.3
+    replicas: 2
+    resources: {}
+  credsSecret:
+    name: monsuntenant-creds-secret
+  image: minio/minio:RELEASE.2021-03-01T04-20-55Z
+  imagePullSecret: {}
+  mountPath: /export
+  pools:
+  - resources: {}
+    servers: 4
+    volumeClaimTemplate:
+      apiVersion: v1
+      kind: persistentvolumeclaims
+      metadata:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 128Mi
+        storageClassName: default
+      status: {}
+    volumesPerServer: 4
+  requestAutoCert: true
+status:
+  availableReplicas: 0
+  certificates: {}
+  currentState: ""
+  pools: null
+  revision: 0
+  syncVersion: ""
+
+---
+apiVersion: v1
+data:
+  accesskey: MzU2ZWI0MDUtNGEwMy00ZjQyLWE5NjQtNDczNDNjYzUwMDc2
+  secretkey: ZWZkNWM3NjUtMDI5MC00MzI1LTllMTQtNmRiNDkzYmU1MGI2
+kind: Secret
+metadata:
+  name: monsuntenant-creds-secret
+  namespace: monsun
+
+---
+apiVersion: v1
+data:
+  CONSOLE_ACCESS_KEY: YWRtaW4=
+  CONSOLE_PBKDF_PASSPHRASE: MjViMDNhODQtMWFlZS00ZjYwLTg2NjItMDljNDU3YThmYjA4
+  CONSOLE_PBKDF_SALT: OWExZGM1YjktN2JlNy00Yzc5LWEwODQtMmY2NWI2NzYyZmVk
+  CONSOLE_SECRET_KEY: ZDFhYjljMDEtMWY1Mi00OGQ2LWFjMDQtOTZkYjAwODc2OTBj
+kind: Secret
+metadata:
+  name: monsuntenant-console-secret
+  namespace: monsun
