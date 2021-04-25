@@ -36,3 +36,35 @@ push-jupyter: build-jupyter ## Push jupyter image
 build: build-executor build-driver build-jupyter
 
 push: push-executor push-driver push-jupyter
+
+az-login: ## login to azure before running any azure commands.
+	$(az) login
+
+az-start-cluster: az-login ## Create kubernetes cluster in Azure
+	$(az) aks create --resource-group etltodf --name monsunkubernetes --node-count 5  --generate-ssh-keys
+
+az-getcredentials:
+	$(az) aks get-credentials --resource-group etltodf --name monsunkubernetes --overwrite-existing
+
+az-delete: az-login ## Deletes cluster in Azure
+	$(az) aks delete --resource-group etltodf --name monsunkubernetes
+
+kube-create-namespace:
+	kubectl create namespace monsun
+	kubectl config set-context --current --namespace=monsun
+
+kube-config: ## When kubectl context have been set to correct cluster, this will configure that cluster	
+	# Create $(SA-SPARK-DRIVER) service account
+	kubectl create serviceaccount $(SA-SPARK-DRIVER)
+
+	# Create a cluster and namespace "role-binding" to grant the account administrative privileges
+	kubectl create rolebinding $(SA-SPARK-DRIVER)-rb --clusterrole=cluster-admin --serviceaccount=monsun:$(SA-SPARK-DRIVER)
+	kubectl create rolebinding $(SA-SPARK-DRIVER)-default-rb --clusterrole=cluster-admin --serviceaccount=default:$(SA-SPARK-DRIVER)
+
+	# Create Spark executor account
+	kubectl create serviceaccount spark-minion
+
+	# Create rolebinding to offer "edit" privileges
+	kubectl create rolebinding spark-minion-rb --clusterrole=edit --serviceaccount=monsun:spark-minion
+
+az-prepare: az-start-cluster az-getcredentials kube-create-namespace kube-config ## Creates cluster and configures namespace, service account etc
