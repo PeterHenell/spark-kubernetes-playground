@@ -49,4 +49,18 @@ För att komma åt MinIO Browser.
 TODO
 
 	1: Installera minio operator och tenant
-	2: verifiera att spark kan läsa från minio
+	2: Done: verifiera att spark kan läsa från minio
+	3: Verifiera att spark can read from OUR minio
+		SSL is the problem
+		can disable cert check, for now:
+		spark-shell --conf 'spark.executor.extraJavaOptions=-Dcom.amazonaws.sdk.disableCertChecking=true' --conf 'spar
+k.driver.extraJavaOptions=-Dcom.amazonaws.sdk.disableCertChecking=true'
+
+	Maybe we can use self signed cert:
+
+	https://stackoverflow.com/questions/61301704/how-to-run-apache-spark-with-s3-minio-secured-with-self-signed-certificate
+
+	keytool -import -trustcacerts -alias certalias \
+-noprompt -file /path/to/cert.crt \
+-keystore $JAVA_HOME/jre/lib/security/cacerts \
+-storepass changeit

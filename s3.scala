@@ -21,3 +21,14 @@ myRDD.count
 
 //sc.hadoopConfiguration.set("fs.s3a.access.key", "minioadmin")
 //sc.hadoopConfiguration.set("fs.s3a.secret.key", "minioadmin")
+
+
+// for own minio installation
+sc.hadoopConfiguration.set("fs.s3a.endpoint", "https://minio")
+sc.hadoopConfiguration.set("fs.s3a.access.key", "YOURCONSOLEACCESS")
+sc.hadoopConfiguration.set("fs.s3a.secret.key", "YOURCONSOLESECRET")
+sc.hadoopConfiguration.set("fs.s3a.path.style.access", "true")
+sc.hadoopConfiguration.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+
+val myRDD = sc.textFile("s3a://test/swagger.yaml")
+myRDD.count

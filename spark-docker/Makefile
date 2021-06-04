@@ -69,7 +69,7 @@ minio-operator: ## Install the Minio operator to the cluster. Requires krew on l
 
 minio-tenant: minio-operator ## Create the minio tenant. Will take a few minutes at least
 # kubectl minio tenant create monsun-tenant --servers 4 --volumes 16 --capacity 2Gi --namespace monsun --storage-class default
-	kubectl apply -f minio-deployment.yaml
+	kubectl apply -f minio-tenant-deployment.yaml
 
 minio: minio-operator minio-tenant ## installs operator and the tenant
 
