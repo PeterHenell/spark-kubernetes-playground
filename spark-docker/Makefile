@@ -68,8 +68,23 @@ minio-operator: ## Install the Minio operator to the cluster. Requires krew on l
 	kubectl minio init
 
 minio-tenant: minio-operator ## Create the minio tenant. Will take a few minutes at least
-	kubectl minio tenant create monsun-tenant --servers 4 --volumes 16 --capacity 2Gi --namespace monsun --storage-class default
+# kubectl minio tenant create monsun-tenant --servers 4 --volumes 16 --capacity 2Gi --namespace monsun --storage-class default
+	kubectl apply -f minio-deployment.yaml
 
 minio: minio-operator minio-tenant ## installs operator and the tenant
 
 az-create: az-start-cluster az-getcredentials kube-create-namespace kube-config ## Creates cluster and configures namespace, service account etc
+
+
+jump: ## Create a jump pod using the Spark driver container and service account
+	kubectl run $(SPARK_DRIVER_NAME) -it --rm=true \
+	--image=$(EXECUTOR-IMAGE) \
+	--serviceaccount=$(SA-SPARK-DRIVER) \
+	--image-pull-policy Always \
+	--command -- /bin/bash
+
+jupyter: ## Start an instance of Jupyter container in Kubernetes
+	kubectl run jupyter-test-pod -it --rm=true \
+	--image=$(JUPYTER-IMAGE) \
+	--serviceaccount=$(SA-SPARK-DRIVER) \
+	--command -- jupyter lab --ip 0.0.0.0

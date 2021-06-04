@@ -5,11 +5,14 @@ FROM ubuntu:18.04 AS deps
 
 RUN apt-get update && apt-get -y install wget
 WORKDIR /tmp
-RUN wget https://archive.apache.org/dist/spark/spark-2.4.7/spark-2.4.7-bin-without-hadoop.tgz \
-	&& tar zxvf spark-2.4.7-bin-without-hadoop.tgz
-RUN wget https://archive.apache.org/dist/hadoop/common/hadoop-3.1.3/hadoop-3.1.3.tar.gz \
-  && tar xvzf hadoop-3.1.3.tar.gz
-
+RUN wget https://ftp.acc.umu.se/mirror/apache.org/spark/spark-3.1.2/spark-3.1.2-bin-without-hadoop.tgz \
+	&& tar zxvf spark-3.1.2-bin-without-hadoop.tgz
+RUN wget https://archive.apache.org/dist/hadoop/common/hadoop-3.2.0/hadoop-3.2.0.tar.gz \
+  && tar xvzf hadoop-3.2.0.tar.gz
+RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-azure/3.2.0/hadoop-azure-3.2.0.jar
+RUN wget https://repo1.maven.org/maven2/com/microsoft/azure/azure-storage/8.6.6/azure-storage-8.6.6.jar
+RUN wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.2.0/hadoop-aws-3.2.0.jar
+RUN wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.11.1032/aws-java-sdk-bundle-1.11.1032.jar
 
 # Runtime Container Image. Adapted from the official Spark runtime 
 # image from the project repository at https://github.com/apache/spark.
@@ -41,67 +44,38 @@ RUN apt-get update \
   && rm -rf /var/cache/apt/*
 
 # Hadoop: Copy previously fetched runtime components
-COPY --from=deps /tmp/hadoop-3.1.3/bin /opt/hadoop/bin
-COPY --from=deps /tmp/hadoop-3.1.3/etc /opt/hadoop/etc
-COPY --from=deps /tmp/hadoop-3.1.3/include /opt/hadoop/include
-COPY --from=deps /tmp/hadoop-3.1.3/lib /opt/hadoop/lib
-COPY --from=deps /tmp/hadoop-3.1.3/libexec /opt/hadoop/libexec
-COPY --from=deps /tmp/hadoop-3.1.3/sbin /opt/hadoop/sbin
-COPY --from=deps /tmp/hadoop-3.1.3/share /opt/hadoop/share
+COPY --from=deps /tmp/hadoop-3.2.0/bin /opt/hadoop/bin
+COPY --from=deps /tmp/hadoop-3.2.0/etc /opt/hadoop/etc
+COPY --from=deps /tmp/hadoop-3.2.0/include /opt/hadoop/include
+COPY --from=deps /tmp/hadoop-3.2.0/lib /opt/hadoop/lib
+COPY --from=deps /tmp/hadoop-3.2.0/libexec /opt/hadoop/libexec
+COPY --from=deps /tmp/hadoop-3.2.0/sbin /opt/hadoop/sbin
+COPY --from=deps /tmp/hadoop-3.2.0/share /opt/hadoop/share
 
 # Spark: Copy previously fetched runtime components
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/bin /opt/spark/bin
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/jars /opt/spark/jars
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/python /opt/spark/python
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/R /opt/spark/R
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/sbin /opt/spark/sbin
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/yarn /opt/spark/yarn
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/bin /opt/spark/bin
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/jars /opt/spark/jars
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/python /opt/spark/python
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/R /opt/spark/R
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/sbin /opt/spark/sbin
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/yarn /opt/spark/yarn
+
+# Add jar for accessing Azure
+COPY --from=deps /tmp/hadoop-azure-3.2.0.jar /opt/spark/jars/hadoop-azure-3.2.0.jar
+COPY --from=deps /tmp/azure-storage-8.6.6.jar /opt/spark/jars/azure-storage-8.6.6.jar
+
+# Add jars for accessing s3
+COPY --from=deps /tmp/hadoop-aws-3.2.0.jar /opt/spark/jars/hadoop-aws-3.2.0.jar 
+COPY --from=deps /tmp/aws-java-sdk-bundle-1.11.1032.jar /opt/spark/jars/aws-java-sdk-bundle-1.11.1032.jar
+
 
 # Spark: Copy Docker entry script
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/kubernetes/dockerfiles/spark/entrypoint.sh /opt/
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/kubernetes/dockerfiles/spark/entrypoint.sh /opt/
 
 # Spark: Copy examples, data, and tests
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/examples /opt/spark/examples
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/data /opt/spark/data
-COPY --from=deps /tmp/spark-2.4.7-bin-without-hadoop/kubernetes/tests /opt/spark/tests
-
-# Replace out of date dependencies causing a 403 error on job launch
-WORKDIR /tmp
-RUN cd /tmp && mkdir -p /tmp/s3deps \
-  && wget https://oak-tree.tech/documents/71/commons-logging-1.1.3.jar \
-  && wget https://oak-tree.tech/documents/81/commons-pool-1.5.4.jar \
-  && wget https://oak-tree.tech/documents/80/commons-beanutils-1.9.3.jar \
-  && wget https://oak-tree.tech/documents/79/commons-cli-1.2.jar \
-  && wget https://oak-tree.tech/documents/78/commons-collections-3.2.2.jar \
-  && wget https://oak-tree.tech/documents/77/commons-configuration-1.6.jar \
-  && wget https://oak-tree.tech/documents/76/commons-dbcp-1.4.jar \
-  && wget https://oak-tree.tech/documents/75/commons-digester-1.8.jar \
-  && wget https://oak-tree.tech/documents/74/commons-httpclient-3.1.jar \
-  && wget https://oak-tree.tech/documents/73/commons-io-2.4.jar \
-  && wget https://oak-tree.tech/documents/70/log4j-1.2.17.jar \
-  && wget https://oak-tree.tech/documents/72/apache-log4j-extras-1.2.17.jar \
-  && wget https://oak-tree.tech/documents/59/kubernetes-client-4.6.4.jar \
-  && wget https://oak-tree.tech/documents/58/kubernetes-model-4.6.4.jar \
-  && wget https://oak-tree.tech/documents/57/kubernetes-model-common-4.6.4.jar \
-  && cd /tmp/s3deps \
-  && wget https://oak-tree.tech/documents/60/joda-time-2.9.9.jar \
-  && wget https://oak-tree.tech/documents/61/httpclient-4.5.3.jar \
-  && wget https://oak-tree.tech/documents/62/aws-java-sdk-s3-1.11.534.jar \
-  && wget https://oak-tree.tech/documents/63/aws-java-sdk-kms-1.11.534.jar \
-  && wget https://oak-tree.tech/documents/64/aws-java-sdk-dynamodb-1.11.534.jar \
-  && wget https://oak-tree.tech/documents/65/aws-java-sdk-core-1.11.534.jar \
-  && wget https://oak-tree.tech/documents/66/aws-java-sdk-1.11.534.jar \
-  && wget https://oak-tree.tech/documents/67/hadoop-aws-3.1.2.jar \
-  && wget https://oak-tree.tech/documents/68/slf4j-api-1.7.29.jar \
-  && wget https://oak-tree.tech/documents/69/slf4j-log4j12-1.7.29.jar \
-  && rm -rf /opt/spark/jars/kubernetes-client-* \
-  && rm -rf /opt/spark/jars/kubernetes-model-* \
-  && rm -rf /opt/spark/jars/kubernetes-model-common-* \
-  && mv /tmp/commons-logging-* /opt/spark/jars \
-  && mv /tmp/log4j-* /opt/spark/jars/ \
-  && mv /tmp/apache-log4j-* /opt/spark/jars \
-  && mv /tmp/kubernetes-* /opt/spark/jars/ \
-  && mv /tmp/s3deps/* /opt/spark/jars/
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/examples /opt/spark/examples
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/data /opt/spark/data
+COPY --from=deps /tmp/spark-3.1.2-bin-without-hadoop/kubernetes/tests /opt/spark/tests
 
 # Set Hadoop environment
 ENV HADOOP_HOME /opt/hadoop
