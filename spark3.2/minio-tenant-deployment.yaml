@@ -1,0 +1,73 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata: 
+  name: monsuntenant
+  namespace: monsun
+scheduler:
+  name: ""
+spec:
+  certConfig: {}
+  console:
+    consoleSecret:
+      name: monsuntenant-console-secret
+    image: minio/console:v0.6.3
+    replicas: 2
+    resources: {}
+  credsSecret:
+    name: monsuntenant-creds-secret
+  image: minio/minio:RELEASE.2021-03-01T04-20-55Z
+  imagePullSecret: {}
+  mountPath: /export
+  pools:
+  - resources: {}
+    servers: 4
+    volumeClaimTemplate:
+      apiVersion: v1
+      kind: persistentvolumeclaims
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 128Mi
+        storageClassName: default
+      status: {}
+    volumesPerServer: 4
+  requestAutoCert: true
+status:
+  availableReplicas: 0
+  certificates: {}
+  currentState: ""
+  pools: null
+  revision: 0
+  syncVersion: ""
+
+---
+apiVersion: v1
+data:
+  ## Access Key for MinIO Tenant, base64 encoded (echo -n 'minio' | base64)
+  accesskey: bWluaW8=
+  ## Secret Key for MinIO Tenant, base64 encoded (echo -n 'minio123' | base64)
+  secretkey: bWluaW8xMjM=
+kind: Secret
+type: Opaque
+metadata:
+  name: monsuntenant-creds-secret
+  namespace: monsun
+
+---
+apiVersion: v1
+data:
+  ## Passphrase to encrypt jwt payload, base64 encoded (echo -n 'SECRET' | base64)
+  CONSOLE_PBKDF_PASSPHRASE: U0VDUkVU
+  ## Salt to encrypt jwt payload, base64 encoded (echo -n 'SECRET' | base64)
+  CONSOLE_PBKDF_SALT: U0VDUkVU
+  ## MinIO User Access Key (used for Console Login), base64 encoded (echo -n 'YOURCONSOLEACCESS' | base64)
+  CONSOLE_ACCESS_KEY: WU9VUkNPTlNPTEVBQ0NFU1M=
+  ## MinIO User Secret Key (used for Console Login), base64 encoded (echo -n 'YOURCONSOLESECRET' | base64)
+  CONSOLE_SECRET_KEY: WU9VUkNPTlNPTEVTRUNSRVQ=
+kind: Secret
+type: Opaque
+metadata:
+  name: monsuntenant-console-secret
+  namespace: monsun

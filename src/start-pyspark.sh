@@ -5,7 +5,7 @@ export K8S_CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 export K8S_TOKEN=/var/run/secrets/kubernetes.io/serviceaccount/token
 
 # Docker runtime image
-export DOCKER_IMAGE=peterhenell/spark-kubernetes-playground:base
+export DOCKER_IMAGE=peterhenell/spark-kubernetes-playground:executor
 export SPARK_DRIVER_NAME=spark-test-pod
 export SPARK_DRIVER_PORT=20020
 

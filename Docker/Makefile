@@ -88,14 +88,14 @@ deploy:
 	kubectl apply -f ../deployment.yaml
 
 jump: ## Create a jump pod using the Spark driver container and service account
-	kubectl run $(SPARK_DRIVER_NAME) --generator=run-pod/v1 -it --rm=true \
+	kubectl run $(SPARK_DRIVER_NAME) -it --rm=true \
 	--image=$(DRIVER-IMAGE) \
 	--serviceaccount=$(SA-SPARK-DRIVER) \
 	--image-pull-policy Always \
 	--command -- /bin/bash
 
 jupyter: ## Start an instance of Jupyter container in Kubernetes
-	kubectl run jupyter-test-pod --generator=run-pod/v1 -it --rm=true \
+	kubectl run jupyter-test-pod -it --rm=true \
 	--image=$(JUPYTER-IMAGE) \
 	--serviceaccount=$(SA-SPARK-DRIVER) \
 	--command -- jupyter lab --ip 0.0.0.0

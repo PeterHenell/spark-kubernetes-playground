@@ -46,9 +46,21 @@ För att komma åt MinIO Browser.
 	kubectl port-forward svc/minio 9000:443
 	# https://127.0.0.1:9000/minio/login
 
+Jupyter
+	make jupyter
+	# in second terminal run
+	kubectl port-forward pod/jupyter-test-pod 8800:8888
+	# in same second terminal
+	kubectl logs jupyter-test-pod
+
+	# to enable executors to report progres, create a service on the jupyter pod
+	kubectl expose pod jupyter-test-pod --type=ClusterIP --cluster-ip=None
+	
+
+
 TODO
 
-	1: Installera minio operator och tenant
+	1: Done: Installera minio operator och tenant
 	2: Done: verifiera att spark kan läsa från minio
 	3: Verifiera att spark can read from OUR minio
 		SSL is the problem
