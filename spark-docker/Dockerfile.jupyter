@@ -15,6 +15,9 @@ RUN pip install py4j \
 	&& ln -s /opt/spark/python/pyspark /usr/local/lib/python3.7/dist-packages/pyspark \
  	&& ln -s /opt/spark/python/pylintrc /usr/local/lib/python3.7/dist-packages/pylintrc
 
+# Install Python Virtual Environment and IP Utils
+RUN apt-get update && apt-get install -y python3-venv unzip iputils-ping
+
 # Install Jupyter Spark extension
 RUN pip install jupyter-spark \
 	&& jupyter serverextension enable --py jupyter_spark \

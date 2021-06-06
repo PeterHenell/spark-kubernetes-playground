@@ -23,3 +23,12 @@ export SPARK_DRIVER_PORT=20020
   --conf spark.kubernetes.container.image.pullPolicy=Always \
   --conf spark.driver.host=$HOSTNAME.$SPARK_NAMESPACE \
   --conf spark.driver.port=$SPARK_DRIVER_PORT
+
+
+# to enable pyspark to read s3, add these to above line
+  --conf spark.hadoop.fs.s3a.endpoint=https://minio:443 \
+  --conf spark.hadoop.fs.s3a.access.key=minio \
+  --conf spark.hadoop.fs.s3a.secret.key=minio123 \
+  --conf spark.hadoop.fs.s3a.fast.upload=True \
+  --conf spark.hadoop.fs.s3a.path.style.access=True \
+  --conf spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
