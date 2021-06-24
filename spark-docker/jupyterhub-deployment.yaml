@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jupyter-test-pod
+  namespace: monsun
+  labels:
+    app: jupyter-test-pod
+    environment: test
+
+spec:
+  containers:
+  - name: jupyter-test-pod
+    image: jupyterhub/jupyterhub
+    imagePullPolicy: Always
+  
+  restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter-test-pod
+  namespace: monsun
+spec:
+  clusterIP: None
+  selector:
+    app: jupyter-test-pod
+    environment: test
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
