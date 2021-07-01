@@ -1,0 +1,5 @@
+FROM prestodb/cdh5.13-hive:latest
+
+ADD hadoop/core-site.xml:/etc/hadoop/conf/core-site.xml
+ADD hadoop/lib/json-udf-1.3.8-jar-with-dependencies.jar:/usr/lib/hive/lib/json-udf-1.3.8-jar-with-dependencies.jar
+ADD hadoop/lib/json-serde-1.3.8-jar-with-dependencies.jar:/usr/lib/hive/lib/json-serde-1.3.8-jar-with-dependencies.jar

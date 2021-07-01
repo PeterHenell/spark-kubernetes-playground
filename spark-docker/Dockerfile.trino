@@ -1,0 +1,12 @@
+FROM trinodb/trino
+
+ADD hadoop/lib/json-serde-1.3.8-jar-with-dependencies.jar /usr/lib/presto/lib/plugin/hive-hadoop2/json-serde-1.3.8-jar-with-dependencies.jar
+
+# TODO: add config as configMaps
+ADD trino/default/etc/config.properties /usr/lib/presto/etc/config.properties
+ADD trino/default/etc/jvm.config /usr/lib/presto/etc/jvm.config
+ADD trino/default/etc/node.properties /usr/lib/presto/etc/node.properties
+ADD trino/default/etc/log.properties /usr/lib/presto/etc/log.properties
+# TODO: move catalog properties to configmaps
+ADD trino/catalogs/minio.properties /usr/lib/presto/etc/catalog/minio.properties
+

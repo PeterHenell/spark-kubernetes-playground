@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: presto
+  name: presto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: presto
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      labels:
+        io.kompose.service: presto
+    spec:
+      containers:
+      - image: prestosql/presto
+        name: presto
+        ports:
+        - containerPort: 8080
+        resources: {}
+      hostname: presto
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: hadoop
+      - name: presto
+
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: presto
+  name: presto
+spec:
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080
+  selector:
+    io.kompose.service: presto
+status:
+  loadBalancer: {}
